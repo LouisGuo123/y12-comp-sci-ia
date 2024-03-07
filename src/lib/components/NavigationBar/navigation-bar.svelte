@@ -6,7 +6,7 @@
 </script>
 
 <nav>
-    <a href="/"><object title="site-banner" data={img} type="image/svg+xml"></object></a>
+    <a href="{base}/"><object title="site-banner" data={img} type="image/svg+xml"></object></a>
     <ul>
         <MenuLink label="Fundamentals" href="{base}/fundamentals" labelHrefList={[["Linear Algebra", "{base}/fundamentals/linear-algebra"], ["Calculus", "{base}/fundamentals/calculus"]]} />
         <Link label="Resources" href="{base}/resources" />
