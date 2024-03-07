@@ -23,7 +23,7 @@ jobs:
             uses: actions/checkout@v4
 
           - name: Enable Corepack
-            uses: corepack enable
+            run: corepack enable
 
           - name: Use Node.js 20.x
             uses: actions/setup-node@v4
