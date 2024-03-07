@@ -1,15 +1,16 @@
 <script lang="ts">
     import Link from './link.svelte';
     import MenuLink from './menu-link.svelte';
-    import img from '$lib/images/banner-dark.svg'
+    import img from '$lib/images/banner-dark.svg';
+    import { base } from '$app/paths';
 </script>
 
 <nav>
     <a href="/"><object title="site-banner" data={img} type="image/svg+xml"></object></a>
     <ul>
-        <MenuLink label="Fundamentals" href="/fundamentals" labelHrefList={[["Linear Algebra", "/fundamentals/linear-algebra"], ["Calculus", "/fundamentals/calculus"]]} />
-        <Link label="Resources" href="/resources" />
-        <Link label="Further Reading" href="/further-reading" />
+        <MenuLink label="Fundamentals" href="{base}/fundamentals" labelHrefList={[["Linear Algebra", "{base}/fundamentals/linear-algebra"], ["Calculus", "{base}/fundamentals/calculus"]]} />
+        <Link label="Resources" href="{base}/resources" />
+        <Link label="Further Reading" href="{base}/further-reading" />
     </ul>
 </nav>
 
