@@ -8,9 +8,9 @@
 <nav>
     <a href="{base}/"><object title="site-banner" data={img} type="image/svg+xml"></object></a>
     <ul>
-        <MenuLink label="Fundamentals" href="{base}/fundamentals" labelHrefList={[["Linear Algebra", "{base}/fundamentals/linear-algebra"], ["Calculus", "{base}/fundamentals/calculus"]]} />
-        <Link label="Resources" href="{base}/resources" />
-        <Link label="Further Reading" href="{base}/further-reading" />
+        <MenuLink label="Fundamentals" href="/fundamentals" labelHrefList={[["Linear Algebra", "/fundamentals/linear-algebra"], ["Calculus", "/fundamentals/calculus"]]} />
+        <Link label="Resources" href="/resources" />
+        <Link label="Further Reading" href="/further-reading" />
     </ul>
 </nav>
 

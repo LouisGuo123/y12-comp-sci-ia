@@ -1,6 +1,7 @@
 <script lang="ts">
     import Menu from "./menu.svelte";
     import arrow from "$lib/images/down-arrow.svg";
+    import { base } from '$app/paths';
 
     export let label = "???";
     export let href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
@@ -14,7 +15,7 @@
 
 <li>
     <div>
-        <a href={href}>{label}</a>
+        <a href="{base}{href}">{label}</a>
         <button on:click={toggleMenuVisible}><object title="dropdown-arrow" data={arrow} type="image/svg+xml"></object></button>
     </div>
     {#if isMenuVisible}

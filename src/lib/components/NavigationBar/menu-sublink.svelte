@@ -6,7 +6,7 @@
 </script>
 
 <li>
-    <a href={href}>{label}</a>
+    <a href="{base}{href}">{label}</a>
 </li>
 
 <style>
