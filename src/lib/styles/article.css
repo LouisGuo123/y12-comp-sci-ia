@@ -1,0 +1,23 @@
+article {
+    width: calc(50vw + 10vh);
+    margin: calc(5vh + 7vw) auto;
+
+    font: normal 100 calc(1.3vh + .7vw) 'Roboto', sans-serif;
+}
+
+.article-p.article-p {
+    color: white;
+    text-indent: 3em;
+    letter-spacing: .02em;
+    line-height: 1.4em;
+}
+
+em {
+    font-style: italic;
+}
+
+.note.note {
+    border: calc(.1vw + .1vh) solid white;
+    padding: calc(1.2vw + 1vh) calc(1vw + 1vh);
+    margin: 1.2em 0;
+}

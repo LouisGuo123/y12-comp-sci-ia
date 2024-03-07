@@ -1,0 +1,8 @@
+@import url(reset.css);
+@import url('https://fonts.googleapis.com/css?family=Roboto:100|Roboto:700');
+@import url('https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css');
+
+body {
+    background-color: #221f26ff;
+    overscroll-behavior: none;
+}
