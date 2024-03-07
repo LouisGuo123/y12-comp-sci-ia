@@ -1,4 +1,6 @@
 <script>
+    import { base } from "$app/paths";
+
     export let label = "???";
     export let href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 </script>
