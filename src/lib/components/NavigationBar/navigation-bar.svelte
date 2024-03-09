@@ -8,7 +8,7 @@
 <nav>
     <a href="{base}/"><object title="site-banner" data={img} type="image/svg+xml"></object></a>
     <ul>
-        <MenuLink label="Fundamentals" href="/fundamentals" labelHrefList={[["Linear Algebra", "/fundamentals/linear-algebra"], ["Calculus", "/fundamentals/calculus"]]} />
+        <MenuLink label="Fundamentals" href="/fundamentals" labelHrefList={[["Linear Algebra", "/fundamentals/linear-algebra"], ["Calculus", "/fundamentals/calculus"], ["Data Science", "/fundamentals/data-science"]]} />
         <Link label="Resources" href="/resources" />
         <Link label="Further Reading" href="/further-reading" />
     </ul>
@@ -48,7 +48,7 @@
 
         padding: 0 calc(.5vw + .6vh);
         color: white;
-        font: normal 100 calc(.13vw + 1.6vh) 'Roboto', sans-serif;
+        font: normal 100 calc(.15vw + 1.8vh) 'Roboto', sans-serif;
         letter-spacing: .05em;
     }
 </style>
