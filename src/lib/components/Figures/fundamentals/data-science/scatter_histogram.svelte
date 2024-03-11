@@ -3,6 +3,12 @@
     import * as THREE from 'three';
     import { DragControls } from 'three/examples/jsm/controls/DragControls';
 
+    function isOnScreen( element: HTMLElement ): boolean {
+        let elementRect = element.getBoundingClientRect();
+
+        return elementRect.bottom > 0 && elementRect.top < window.innerHeight;
+    }
+
     const ORIGIN = new THREE.Vector3( 0, 0, 0 );
     const IHAT = new THREE.Vector3( 1, 0, 0 );
     const JHAT = new THREE.Vector3( 0, 1, 0 );
@@ -46,11 +52,6 @@
 
     for (let x = 0; x < buckets.length; x++) {
         buckets[x] = new Array<{count: number, plane: THREE.Mesh}>( 6 );
-    }
-
-    $: if ( doneMounting ) {
-        controls = new DragControls( draggableObjects, camera, canvasElement );
-        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
     }
 
     function onObjectDrag( event: { object: THREE.Object3D<THREE.Object3DEventMap> } & THREE.Event<'drag', DragControls> ): void {
@@ -104,7 +105,9 @@
     function animate(): void {
         requestAnimationFrame( animate );
 
-        renderer.render(scene, camera);
+        if ( isOnScreen( canvasElement ) ) {
+            renderer.render(scene, camera);
+        }
     }
 
     onMount( () => {
@@ -125,6 +128,9 @@
         } );
         renderer.sortObjects = true;
         renderer.setClearColor( 0xffffff, 0 );
+
+        controls = new DragControls( draggableObjects, camera, canvasElement );
+        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
 
         for (let x = 0; x < buckets.length; x++) {
             for (let y = 0; y < buckets[0].length; y++) {

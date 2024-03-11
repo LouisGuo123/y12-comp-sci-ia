@@ -6,9 +6,13 @@
     import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
     import { Line2 } from 'three/examples/jsm/lines/Line2';
 
+    function isOnScreen( element: HTMLElement ): boolean {
+        let elementRect = element.getBoundingClientRect();
+
+        return elementRect.bottom > 0 && elementRect.top < window.innerHeight;
+    }
+
     const ORIGIN = new THREE.Vector3( 0, 0, 0 );
-    const IHAT = new THREE.Vector3( 1, 0, 0 );
-    const JHAT = new THREE.Vector3( 0, 1, 0 );
 
     let doneMounting = false;
 
@@ -38,30 +42,11 @@
     let ghostLine2: Line2;
     let ghostArrowHelper2: THREE.ArrowHelper;
 
-    $: if ( doneMounting ) {
-        controls = new DragControls( draggableObjects, camera, canvasElement );
-        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
-    }
-
-    function onObjectDrag( event: { object: THREE.Object3D<THREE.Object3DEventMap> } & THREE.Event<'drag', DragControls> ) {
-        let [src, line, arrowHelper, headWidth, headLength] = ballToArrowMap.get( event.object )!;
-        
-        updateFatArrow( src, event.object.position, line, arrowHelper, headLength, headWidth );
-        updateFatArrow( ORIGIN, ball1.position.clone().add( ball2.position ), sumLine, sumArrowHelper, .05, .05 );
-        updateFatArrow( ball1.position, ball2.position.clone().add( ball1.position ), ghostLine1, ghostArrowHelper1, .05, .05 );
-        updateFatArrow( ball2.position, ball1.position.clone().add( ball2.position ), ghostLine2, ghostArrowHelper2, .05, .05 );
-    }
-
-    $: if ( doneMounting ) {
-        gridHelper = new THREE.GridHelper( 10, 10, 0xffffff );
-        gridHelper.rotateX( Math.PI / 2 );
-        gridHelper.scale.set( .2, 1, .2 );
-        
-        scene.add(gridHelper);
-    }
-
     function getFatArrow( src: THREE.Vector3, dest: THREE.Vector3, arrowColor: THREE.ColorRepresentation, lineWidth: number, headLength: number, headWidth: number ): [Line2, THREE.ArrowHelper] {
         let arrowHelper = new THREE.ArrowHelper( dest.clone().sub( src ).normalize(), src, dest.clone().sub( src ).length(), arrowColor, headLength, headWidth );
+        (arrowHelper.cone.material as THREE.Material).depthTest = false;
+        (arrowHelper.line.material as THREE.Material).depthTest = false;
+
         let lineGeo = new LineGeometry();
         let headOffset = dest.clone().sub(src).normalize().multiplyScalar( headLength );
         lineGeo.setPositions( [
@@ -107,8 +92,36 @@
         arrowHelper.setLength( dest.clone().sub( src ).length(), headLength, headWidth );
     }
 
+    function updateFatArrowRenderOrder( line: Line2, arrowHelper: THREE.ArrowHelper, renderOrder: number ): void {
+        line.renderOrder = renderOrder;
+        arrowHelper.cone.renderOrder = renderOrder;
+        arrowHelper.line.renderOrder = renderOrder;
+    }
+
+    function updateCanvasDimensions(): void {
+        [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
+        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
+    }
+
+    function onObjectDrag( event: { object: THREE.Object3D<THREE.Object3DEventMap> } & THREE.Event<'drag', DragControls> ) {
+        let [src, line, arrowHelper, headWidth, headLength] = ballToArrowMap.get( event.object )!;
+        
+        updateFatArrow( src, event.object.position, line, arrowHelper, headLength, headWidth );
+        updateFatArrow( ORIGIN, ball1.position.clone().add( ball2.position ), sumLine, sumArrowHelper, .05, .05 );
+        updateFatArrow( ball1.position, ball2.position.clone().add( ball1.position ), ghostLine1, ghostArrowHelper1, .05, .05 );
+        updateFatArrow( ball2.position, ball1.position.clone().add( ball2.position ), ghostLine2, ghostArrowHelper2, .05, .05 );
+    }
+
+    function animate(): void {
+        requestAnimationFrame( animate );
+
+        if ( isOnScreen( canvasElement ) ) {
+            renderer.render(scene, camera);
+        }
+    }
+
     $: if ( doneMounting ) {
-        for ( let [ball, [src, line, arrowHelper, headLength, headWidth]] of ballToArrowMap ) {
+        for ( let [ball, [src, line]] of ballToArrowMap ) {
             line.material.resolution = resolution;
         }
         ghostLine1.material.resolution = resolution;
@@ -116,17 +129,7 @@
         sumLine.material.resolution = resolution;
     }
 
-    function animate(): void {
-        requestAnimationFrame( animate );
-
-        renderer.render(scene, camera);
-    }
-
     onMount( () => {
-        function updateCanvasDimensions(): void {
-            [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
-            resolution = new THREE.Vector2( canvasWidth, canvasHeight );
-        }
         updateCanvasDimensions();
 
         scene = new THREE.Scene();
@@ -141,30 +144,36 @@
         renderer.sortObjects = true;
         renderer.setClearColor( 0xffffff, 0 );
 
+        controls = new DragControls( draggableObjects, camera, canvasElement );
+        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
+
+        gridHelper = new THREE.GridHelper( 10, 10, 0xffffff );
+        gridHelper.rotateX( Math.PI / 2 );
+        gridHelper.scale.set( .2, 1, .2 );
+        
+        scene.add(gridHelper);
+
         let line1: Line2;
         let arrowHelper1: THREE.ArrowHelper;
         [line1, arrowHelper1, ball1] = getDraggableFatArrow( ORIGIN, new THREE.Vector3( .4, .2, 0 ), 0xffff00, 3, .05, .05 );
-        arrowHelper1.renderOrder = 2;
+        updateFatArrowRenderOrder( line1, arrowHelper1, 2 );
         ( arrowHelper1.cone.material as THREE.Material).depthTest = false;
         let line2: Line2;
         let arrowHelper2: THREE.ArrowHelper;
         [line2, arrowHelper2, ball2] = getDraggableFatArrow( ORIGIN, new THREE.Vector3( .2, .3, 0 ), 0x00ffff, 3, .05, .05 );
-        arrowHelper2.renderOrder = 2;
+        updateFatArrowRenderOrder( line2, arrowHelper2, 2 );
         ( arrowHelper2.cone.material as THREE.Material).depthTest = false;
         
         draggableObjects.push( ball1 );
         draggableObjects.push( ball2 );
         
-        [ghostLine1, ghostArrowHelper1] = getFatArrow( ball1.position, ball2.position.clone().add( ball1.position ), 0xaaaaaa, 3, .05, .05 );
-        ghostArrowHelper1.renderOrder = 3;
-        ( ghostArrowHelper1.cone.material as THREE.Material).depthTest = false;
-        [ghostLine2, ghostArrowHelper2] = getFatArrow( ball2.position, ball1.position.clone().add( ball2.position ), 0xaaaaaa, 3, .05, .05 );
-        ghostArrowHelper2.renderOrder = 3;
-        ( ghostArrowHelper2.cone.material as THREE.Material).depthTest = false;
+        [ghostLine1, ghostArrowHelper1] = getFatArrow( ball1.position, ball2.position.clone().add( ball1.position ), 0x689998, 3, .05, .05 );
+        [ghostLine2, ghostArrowHelper2] = getFatArrow( ball2.position, ball1.position.clone().add( ball2.position ), 0x999768, 3, .05, .05 );
+        updateFatArrowRenderOrder( ghostLine1, ghostArrowHelper1, 3 );
+        updateFatArrowRenderOrder( ghostLine2, ghostArrowHelper2, 3 );
 
         [sumLine, sumArrowHelper] = getFatArrow( ORIGIN, ball1.position.clone().add( ball2.position ), 0xff00ff, 3, .05, .05 );
-        sumArrowHelper.renderOrder = 100;
-        ( sumArrowHelper.cone.material as THREE.Material).depthTest = false;
+        updateFatArrowRenderOrder( sumLine, sumArrowHelper, 4 );
 
         scene.add( line1, arrowHelper1, ball1 );
         scene.add( line2, arrowHelper2, ball2 );

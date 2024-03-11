@@ -7,6 +7,12 @@
     import { Line2 } from 'three/examples/jsm/lines/Line2';
     import Katex from '$lib/components/Math/katex.svelte';
 
+    function isOnScreen( element: HTMLElement ): boolean {
+        let elementRect = element.getBoundingClientRect();
+
+        return elementRect.bottom > 0 && elementRect.top < window.innerHeight;
+    }
+
     const ORIGIN = new THREE.Vector3( 0, 0, 0 );
     const IHAT = new THREE.Vector3( 1, 0, 0 );
     const JHAT = new THREE.Vector3( 0, 1, 0 );
@@ -35,41 +41,11 @@
 
     let scalar: number = 2;
 
-    $: if ( doneMounting ) {
-        controls = new DragControls( draggableObjects, camera, canvasElement );
-        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
-    }
-
-    $: if ( doneMounting ) {
-        updateFatArrow( ORIGIN, ball1.position.clone().multiplyScalar( scalar ), scaledLine, scaledArrowHelper, .05, .05 );
-        if ( scalar <= 1 ) {
-            scaledLine.renderOrder = 1;
-            scaledArrowHelper.line.renderOrder = 1;
-            scaledArrowHelper.cone.renderOrder = 1;
-        } else {
-            scaledLine.renderOrder = -1;
-            scaledArrowHelper.line.renderOrder = -1;
-            scaledArrowHelper.cone.renderOrder = -1;
-        }
-    }
-
-    function onObjectDrag( event: { object: THREE.Object3D<THREE.Object3DEventMap> } & THREE.Event<'drag', DragControls> ) {
-        let [src, line, arrowHelper, headWidth, headLength] = ballToArrowMap.get( event.object )!;
-        
-        updateFatArrow( src, event.object.position, line, arrowHelper, headLength, headWidth );
-        updateFatArrow( ORIGIN, ball1.position.clone().multiplyScalar( scalar ), scaledLine, scaledArrowHelper, headWidth, headLength );
-    }
-
-    $: if ( doneMounting ) {
-        gridHelper = new THREE.GridHelper( 10, 10, 0xffffff );
-        gridHelper.rotateX( Math.PI / 2 );
-        gridHelper.scale.set( .2, 1, .2 );
-        
-        scene.add(gridHelper);
-    }
-
     function getFatArrow( src: THREE.Vector3, dest: THREE.Vector3, arrowColor: THREE.ColorRepresentation, lineWidth: number, headLength: number, headWidth: number ): [Line2, THREE.ArrowHelper] {
         let arrowHelper = new THREE.ArrowHelper( dest.clone().sub( src ).normalize(), src, dest.clone().sub( src ).length(), arrowColor, headLength, headWidth );
+        (arrowHelper.cone.material as THREE.Material).depthTest = false;
+        (arrowHelper.line.material as THREE.Material).depthTest = false;
+
         let lineGeo = new LineGeometry();
         let headOffset = dest.clone().sub(src).normalize().multiplyScalar( headLength );
         lineGeo.setPositions( [
@@ -115,24 +91,49 @@
         arrowHelper.setLength( dest.clone().sub( src ).length(), headLength, headWidth );
     }
 
-    $: if ( doneMounting ) {
-        for ( let [ball, [src, line, arrowHelper, headLength, headWidth]] of ballToArrowMap ) {
-            line.material.resolution = resolution;
-        }
-        scaledLine.material.resolution = resolution;
+    function updateFatArrowRenderOrder( line: Line2, arrowHelper: THREE.ArrowHelper, renderOrder: number ): void {
+        line.renderOrder = renderOrder;
+        arrowHelper.cone.renderOrder = renderOrder;
+        arrowHelper.line.renderOrder = renderOrder;
+    }
+
+    function updateCanvasDimensions(): void {
+        [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
+        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
+    }
+
+    function onObjectDrag( event: { object: THREE.Object3D<THREE.Object3DEventMap> } & THREE.Event<'drag', DragControls> ) {
+        let [src, line, arrowHelper, headWidth, headLength] = ballToArrowMap.get( event.object )!;
+        
+        updateFatArrow( src, event.object.position, line, arrowHelper, headLength, headWidth );
+        updateFatArrow( ORIGIN, ball1.position.clone().multiplyScalar( scalar ), scaledLine, scaledArrowHelper, headWidth, headLength );
     }
 
     function animate(): void {
         requestAnimationFrame( animate );
 
-        renderer.render(scene, camera);
+        if ( isOnScreen( canvasElement ) ) {
+            renderer.render(scene, camera);
+        }
+    }
+
+    $: if ( doneMounting ) {
+        updateFatArrow( ORIGIN, ball1.position.clone().multiplyScalar( scalar ), scaledLine, scaledArrowHelper, .05, .05 );
+        if ( scalar <= 1 ) {
+            updateFatArrowRenderOrder( scaledLine, scaledArrowHelper, 1 );
+        } else {
+            updateFatArrowRenderOrder( scaledLine, scaledArrowHelper, -1 );
+        }
+    }
+
+    $: if ( doneMounting ) {
+        for ( let [ball, [src, line]] of ballToArrowMap ) {
+            line.material.resolution = resolution;
+        }
+        scaledLine.material.resolution = resolution;
     }
 
     onMount( () => {
-        function updateCanvasDimensions(): void {
-            [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
-            resolution = new THREE.Vector2( canvasWidth, canvasHeight );
-        }
         updateCanvasDimensions();
 
         scene = new THREE.Scene();
@@ -146,6 +147,15 @@
         } );
         renderer.setClearColor( 0xffffff, 0 );
 
+        controls = new DragControls( draggableObjects, camera, canvasElement );
+        controls.addEventListener( 'drag', ( event ) => onObjectDrag( event ) );
+
+        gridHelper = new THREE.GridHelper( 10, 10, 0xffffff );
+        gridHelper.rotateX( Math.PI / 2 );
+        gridHelper.scale.set( .2, 1, .2 );
+        
+        scene.add(gridHelper);
+
         let line1: Line2;
         let arrowHelper1: THREE.ArrowHelper;
         [line1, arrowHelper1, ball1] = getDraggableFatArrow( ORIGIN, new THREE.Vector3( .4, .2, 0 ), 0xffff00, 3, .05, .05 );
@@ -153,11 +163,6 @@
         draggableObjects.push( ball1 );
 
         [scaledLine, scaledArrowHelper] = getFatArrow( ORIGIN, ball1.position.clone().multiplyScalar( scalar ), 0xff00ff, 3, .05, .05 );
-
-        scaledLine.material.depthTest = false;
-        
-        (scaledArrowHelper.line.material as THREE.Material).depthTest = false;
-        (scaledArrowHelper.cone.material as THREE.Material).depthTest = false;
 
         scene.add( line1, arrowHelper1, ball1 );
         scene.add( scaledLine, scaledArrowHelper );

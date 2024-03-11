@@ -6,42 +6,161 @@
     import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
     import Katex from '$lib/components/Math/katex.svelte';
 
+    function isOnScreen( element: HTMLElement ): boolean {
+        let elementRect = element.getBoundingClientRect();
+
+        return elementRect.bottom > 0 && elementRect.top < window.innerHeight;
+    }
+
+    const numOfPoints = 70;
+    const [lbound, rbound] = [-2 * Math.PI, 2 * Math.PI];
+    const xScale = 1 / (2 * Math.PI);
+    const yScale = .25;
+
+    let func: (x: number) => number = (x) => {
+        return Math.sin(x);
+    };
+    let doneMounting = false;
+
     let canvasElement: HTMLCanvasElement;
+    let [canvasWidth, canvasHeight] = [0, 0];
+
     let sliderElement: HTMLInputElement;
     let mathP: HTMLElement;
     let mathT: HTMLElement;
     let graphValue: HTMLElement;
     let graphValueMessage = '';
 
-    onMount( () => {
-        let [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
+    let scene: THREE.Scene;
+    let camera: THREE.OrthographicCamera;
+    let renderer: THREE.WebGLRenderer;
+    let resolution: THREE.Vector2;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera( -1, 1, 1 * canvasHeight / canvasWidth, -1 * canvasHeight / canvasWidth );
-        const resolution = new THREE.Vector2(canvasWidth, canvasHeight);
-        const renderer = new THREE.WebGLRenderer( {
+    let gridHelper: THREE.GridHelper;
+
+    let functionLine: Line2;
+
+    let valueLine: Line2;
+    let deltaLine: Line2;
+
+    let slopeLine: Line2;
+
+    let valueLinePosition: number;
+
+    let locked = false;
+
+    function onCanvasClick(e: MouseEvent) {
+        locked = !locked;
+        if (!locked) onCanvasMove(e);
+    }
+
+    function onCanvasMove(e: MouseEvent): void {
+        if (!locked) {
+            let rect = canvasElement.getBoundingClientRect();
+            let worldMousePos = new THREE.Vector3((e.x - rect.left) / canvasWidth * 2 - 1, (e.y - rect.top) / canvasHeight * 2 - 1, -1).unproject(camera);
+            valueLinePosition = worldMousePos.x;
+            valueLine.geometry.setPositions( [
+                valueLinePosition, camera.top, 0,
+                valueLinePosition, camera.bottom, 0,
+            ] );
+            updateDeltaLine();
+            updateSlopeLine();
+            updateText();
+        }
+    }
+
+    function onCanvasEnter(): void {
+        if (!locked) {
+            valueLine.visible = true;
+            deltaLine.visible = true;
+            slopeLine.visible = true;
+            graphValue.style.display = 'initial';
+        }
+    }
+
+    function onCanvasLeave(): void {
+        if (!locked) {
+            valueLine.visible = false;
+            deltaLine.visible = false;
+            slopeLine.visible = false;
+            graphValue.style.display = 'none';
+        }
+    }
+
+    function updateText() {
+        graphValueMessage = 't:' + (valueLinePosition / xScale).toFixed(2) + '\\\\p_1:' + func(valueLinePosition / xScale).toFixed(2) + '\\\\\\Delta:' + (+sliderElement.value).toFixed(2) + '\\\\p_2:' + func(valueLinePosition / xScale + +sliderElement.value).toFixed(2) + '\\\\\\frac{p_2 - p_1}{\\Delta}:' + ((func(valueLinePosition / xScale + +sliderElement.value) - func(valueLinePosition / xScale)) / +sliderElement.value).toFixed(2);
+    }
+
+    function updateDeltaLine(): void {
+        deltaLine.geometry.setPositions( [
+            valueLinePosition + +sliderElement.value * xScale, camera.top, 0,
+            valueLinePosition + +sliderElement.value * xScale, camera.bottom, 0,
+        ] );
+    }
+
+    function updateSlopeLine(): void {
+        let slope = (func(valueLinePosition / xScale + +sliderElement.value) - func(valueLinePosition / xScale)) / +sliderElement.value;
+        if (!isNaN(slope) && slope != null) {
+            let lineFunc = (x: number) => slope * (x - valueLinePosition / xScale) + func(valueLinePosition / xScale);
+            slopeLine.geometry.setPositions( [
+                camera.left, lineFunc(camera.left / xScale) * yScale, 0,
+                camera.right, lineFunc(camera.right / xScale) * yScale, 0,
+            ] );
+        }
+        else {
+            slopeLine.geometry.setPositions( [
+                0, 0, 0,
+                0, 0, 0,
+            ] );
+        }
+    }
+
+    function bindCanvasListeners(element: HTMLElement): void {
+        element.onclick = onCanvasClick;
+        element.onmousemove = onCanvasMove;
+        element.onmouseenter = onCanvasEnter;
+        element.onmouseleave = onCanvasLeave;
+    }
+
+    function updateCanvasDimensions(): void {
+        [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
+        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+
+        if ( isOnScreen( canvasElement ) ) {
+            renderer.render( scene, camera );
+        }
+    }
+
+    $: if ( doneMounting ) {
+        functionLine.material.resolution = resolution;
+        valueLine.material.resolution = resolution;
+        slopeLine.material.resolution = resolution;
+    }
+
+    onMount( () => {
+        updateCanvasDimensions();
+
+        scene = new THREE.Scene();
+        camera = new THREE.OrthographicCamera( -1, 1, 1 * canvasHeight / canvasWidth, -1 * canvasHeight / canvasWidth );
+        renderer = new THREE.WebGLRenderer( {
             canvas: canvasElement,
             antialias: true,
             alpha: true,
         } );
         renderer.setClearColor( 0xffffff, 0 );
 
-        const func: (x: number) => number = (x) => {
-            return Math.sin(x);
-        };
-        const numOfPoints = 70;
-        let points = new Array<number>( numOfPoints * 3 );
-        const [lbound, rbound] = [-2 * Math.PI, 2 * Math.PI];
-        const xScale = 1 / (2 * Math.PI);
-        const yScale = .25;
-
-        const gridHelper = new THREE.GridHelper( 30, 30, 0xffffff );
+        gridHelper = new THREE.GridHelper( 30, 30, 0xffffff );
         gridHelper.rotateX(Math.PI / 2);
         gridHelper.scale.set(xScale, 1, yScale);
         
         scene.add( gridHelper );
 
-        const functionLineGeometry = new LineGeometry();
+        let functionLineGeometry = new LineGeometry();
+        let points = new Array<number>( numOfPoints * 3 );
         
         function updatePoints() {
             for (let i = 0; i < numOfPoints; i++) {
@@ -54,39 +173,40 @@
         }
         updatePoints();
 
-        const functionLineMaterial = new LineMaterial( {
+        let functionLineMaterial = new LineMaterial( {
             color: 0x26ad46,
             linewidth: 3,
             resolution: resolution,
         } );
-        const functionLine = new Line2( functionLineGeometry, functionLineMaterial );
+        functionLine = new Line2( functionLineGeometry, functionLineMaterial );
         functionLine.computeLineDistances();
         functionLine.scale.set(xScale, yScale, 1);
         
         scene.add( functionLine );
-
-        let position = 0;
-        const valueLineGeometry = new LineGeometry();
+        
+        let valueLineGeometry = new LineGeometry();
         valueLineGeometry.setPositions( [0, 0, 0, 0, 0, 0] );
-        const deltaLineGeometry = new LineGeometry();
+
+        let deltaLineGeometry = new LineGeometry();
         deltaLineGeometry.setPositions( [0, 0, 0, 0, 0, 0] );
-        const positionLineMaterial = new LineMaterial( {
+
+        let positionLineMaterial = new LineMaterial( {
             color: 0xffffff,
             linewidth: 2,
             resolution: resolution,
         } );
-        const valueLine = new Line2( valueLineGeometry, positionLineMaterial );
-        const deltaLine = new Line2( deltaLineGeometry, positionLineMaterial );
-        let locked = false;
 
-        const slopeLineGeometry = new LineGeometry();
+        valueLine = new Line2( valueLineGeometry, positionLineMaterial );
+        deltaLine = new Line2( deltaLineGeometry, positionLineMaterial );
+
+        let slopeLineGeometry = new LineGeometry();
         slopeLineGeometry.setPositions( [0, 0, 0, 0, 0, 0] );
-        const slopeLineMaterial = new LineMaterial( {
+        let slopeLineMaterial = new LineMaterial( {
             color: 0xffff00,
             linewidth: 2,
             resolution: resolution,
         } );
-        const slopeLine = new Line2( slopeLineGeometry, slopeLineMaterial );
+        slopeLine = new Line2( slopeLineGeometry, slopeLineMaterial );
 
         valueLine.visible = false;
         deltaLine.visible = false;
@@ -98,99 +218,22 @@
 
         camera.position.z = 1;
 
-        function animate() {
-            requestAnimationFrame( animate );
-            renderer.render( scene, camera );
-        }
-        animate();
-
-        function onCanvasClick(e: MouseEvent) {
-            locked = !locked;
-            if (!locked) onCanvasMove(e);
-        }
-        function onCanvasMove(e: MouseEvent): void {
-            if (!locked) {
-                let rect = canvasElement.getBoundingClientRect();
-                let worldMousePos = new THREE.Vector3((e.x - rect.left) / canvasWidth * 2 - 1, (e.y - rect.top) / canvasHeight * 2 - 1, -1).unproject(camera);
-                position = worldMousePos.x;
-                valueLineGeometry.setPositions( [
-                    position, camera.top, 0,
-                    position, camera.bottom, 0,
-                ] );
-                updateDeltaLine();
-                updateSlopeLine();
-                updateText();
-            }
-        }
-        function onCanvasEnter(): void {
-            if (!locked) {
-                valueLine.visible = true;
-                deltaLine.visible = true;
-                slopeLine.visible = true;
-                graphValue.style.display = 'initial';
-            }
-        }
-        function onCanvasLeave(): void {
-            if (!locked) {
-                valueLine.visible = false;
-                deltaLine.visible = false;
-                slopeLine.visible = false;
-                graphValue.style.display = 'none';
-            }
-        }
-        function updateText() {
-            graphValueMessage = 't:' + (position / xScale).toFixed(2) + '\\\\p_1:' + func(position / xScale).toFixed(2) + '\\\\\\Delta:' + (+sliderElement.value).toFixed(2) + '\\\\p_2:' + func(position / xScale + +sliderElement.value).toFixed(2) + '\\\\\\frac{p_2 - p_1}{\\Delta}:' + ((func(position / xScale + +sliderElement.value) - func(position / xScale)) / +sliderElement.value).toFixed(2);
-        }
-        function updateDeltaLine(): void {
-            deltaLineGeometry.setPositions( [
-                position + +sliderElement.value * xScale, camera.top, 0,
-                position + +sliderElement.value * xScale, camera.bottom, 0,
-            ] );
-        }
-        function updateSlopeLine(): void {
-            let slope = (func(position / xScale + +sliderElement.value) - func(position / xScale)) / +sliderElement.value;
-            if (!isNaN(slope) && slope != null) {
-                let lineFunc = (x: number) => slope * (x - position / xScale) + func(position / xScale);
-                slopeLineGeometry.setPositions( [
-                    camera.left, lineFunc(camera.left / xScale) * yScale, 0,
-                    camera.right, lineFunc(camera.right / xScale) * yScale, 0,
-                ] );
-            }
-            else {
-                slopeLineGeometry.setPositions( [
-                    0, 0, 0,
-                    0, 0, 0,
-                ] );
-            }
-        }
-        function bindCanvasListeners(element: HTMLElement): void {
-            element.onclick = onCanvasClick;
-            element.onmousemove = onCanvasMove;
-            element.onmouseenter = onCanvasEnter;
-            element.onmouseleave = onCanvasLeave;
-        }
-        function updateResolution(): void {
-            [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
-            resolution.x = canvasWidth;
-            resolution.y = canvasHeight;
-            functionLineMaterial.resolution = resolution;
-            positionLineMaterial.resolution = resolution;
-            slopeLineMaterial.resolution = resolution;
-        }
-
         bindCanvasListeners(canvasElement);
         bindCanvasListeners(mathP);
         bindCanvasListeners(mathT);
         bindCanvasListeners(graphValue);
+
         sliderElement.oninput = () => {
             updateDeltaLine();
             updateSlopeLine();
             updateText();
         };
-        window.addEventListener('resize', updateResolution);
+        window.addEventListener('resize', updateCanvasDimensions);
+
+        animate();
 
         return () => {
-            window.removeEventListener('resize', updateResolution);
+            window.removeEventListener('resize', updateCanvasDimensions);
         };
     } );
 </script>

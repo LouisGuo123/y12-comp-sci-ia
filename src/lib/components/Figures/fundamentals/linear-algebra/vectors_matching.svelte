@@ -6,6 +6,12 @@
     import { Line2 } from 'three/examples/jsm/lines/Line2';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+    function isOnScreen( element: HTMLElement ): boolean {
+        let elementRect = element.getBoundingClientRect();
+
+        return elementRect.bottom > 0 && elementRect.top < window.innerHeight;
+    }
+
     const ORIGIN = new THREE.Vector3( 0, 0, 0 );
     const IHAT = new THREE.Vector3( 1, 0, 0 );
     const JHAT = new THREE.Vector3( 0, 1, 0 );
@@ -51,17 +57,23 @@
     let vectorArrowList = Array<THREE.ArrowHelper>();
     let vectorLineList = Array<Line2>();
 
+    function updateCanvasDimensions(): void {
+        [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
+        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
+    }
+    
     function animate(): void {
         requestAnimationFrame( animate );
+        
         controls.target.clamp( new THREE.Vector3( -1, -1, -1 ), new THREE.Vector3( 1, 1, 1 ) );
         controls.update();
 
-        renderer.render(scene, camera);
+        if ( isOnScreen( canvasElement ) ) {
+            renderer.render(scene, camera);
+        }
     }
 
     $: if ( doneMounting ) {
-        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
-
         xLine.material.resolution = resolution;
         yLine.material.resolution = resolution;
         zLine.material.resolution = resolution;
@@ -72,11 +84,6 @@
     }
 
     onMount( () => {
-        doneMounting = true;
-
-        function updateCanvasDimensions(): void {
-            [canvasWidth, canvasHeight] = [canvasElement.getBoundingClientRect().width, canvasElement.getBoundingClientRect().height];
-        }
         updateCanvasDimensions();
 
         scene = new THREE.Scene();
@@ -90,8 +97,6 @@
             alpha: true,
         } );
         renderer.setClearColor( 0xffffff, 0 );
-
-        resolution = new THREE.Vector2( canvasWidth, canvasHeight );
 
         controls = new OrbitControls( camera, canvasElement );
         controls.enableDamping = true;
@@ -171,6 +176,8 @@
         animate();
 
         window.addEventListener( 'resize', updateCanvasDimensions );
+
+        doneMounting = true;
         
         return () => {
             window.removeEventListener( 'resize', updateCanvasDimensions );
