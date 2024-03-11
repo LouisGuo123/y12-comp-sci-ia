@@ -386,7 +386,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/adapter-auto@npm:^3.0.0":
+"@sveltejs/adapter-auto@npm:^3.1.1":
   version: 3.1.1
   resolution: "@sveltejs/adapter-auto@npm:3.1.1"
   dependencies:
@@ -406,9 +406,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.0.0":
-  version: 2.5.2
-  resolution: "@sveltejs/kit@npm:2.5.2"
+"@sveltejs/kit@npm:^2.5.3":
+  version: 2.5.3
+  resolution: "@sveltejs/kit@npm:2.5.3"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
@@ -428,7 +428,7 @@ __metadata:
     vite: ^5.0.3
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10c0/9d07f9d31c9c2ea3d43f08c0f13f81f009d1c9513ffba5140f5620a683ef814664b38186b43391d99316b1e95cf65c01fc29e50f61d47efd0cfa0d4681c31514
+  checksum: 10c0/a1c75d0163788bcf3c7e389709efe967683de632b4fd3803daf5b6efc1e4a4c15d1a97bad4ff8f19575517d14fa0660dca5e6371d410f0476b1db3d23d31dc25
   languageName: node
   linkType: hard
 
@@ -445,7 +445,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/vite-plugin-svelte@npm:^3.0.0":
+"@sveltejs/vite-plugin-svelte@npm:^3.0.2":
   version: 3.0.2
   resolution: "@sveltejs/vite-plugin-svelte@npm:3.0.2"
   dependencies:
@@ -578,7 +578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/katex@npm:^0":
+"@types/katex@npm:^0.16.7":
   version: 0.16.7
   resolution: "@types/katex@npm:0.16.7"
   checksum: 10c0/68dcb9f68a90513ec78ca0196a142e15c2a2c270b1520d752bafd47a99207115085a64087b50140359017d7e9c870b3c68e7e4d36668c9e348a9ef0c48919b5a
@@ -1645,23 +1645,24 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "machine-learning-site@workspace:."
   dependencies:
-    "@sveltejs/adapter-auto": "npm:^3.0.0"
+    "@sveltejs/adapter-auto": "npm:^3.1.1"
     "@sveltejs/adapter-static": "npm:^3.0.1"
-    "@sveltejs/kit": "npm:^2.0.0"
-    "@sveltejs/vite-plugin-svelte": "npm:^3.0.0"
+    "@sveltejs/kit": "npm:^2.5.3"
+    "@sveltejs/vite-plugin-svelte": "npm:^3.0.2"
     "@tensorflow/tfjs": "npm:^4.17.0"
-    "@types/katex": "npm:^0"
+    "@types/katex": "npm:^0.16.7"
     "@types/lorem-ipsum": "npm:^2.0.0"
     "@types/three": "npm:^0.162.0"
     katex: "npm:^0.16.9"
     lorem-ipsum: "npm:^2.0.8"
     seedrandom: "npm:^3.0.5"
     svelte: "npm:^4.2.12"
-    svelte-check: "npm:^3.6.0"
+    svelte-check: "npm:^3.6.6"
     three: "npm:^0.162.0"
-    tslib: "npm:^2.4.1"
-    typescript: "npm:^5.0.0"
-    vite: "npm:^5.0.3"
+    tslib: "npm:^2.6.2"
+    typescript: "npm:^5.4.2"
+    vite: "npm:^5.1.5"
+    yarn-upgrade-all: "npm:^0.7.2"
   languageName: unknown
   linkType: soft
 
@@ -2427,7 +2428,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte-check@npm:^3.6.0":
+"svelte-check@npm:^3.6.6":
   version: 3.6.6
   resolution: "svelte-check@npm:3.6.6"
   dependencies:
@@ -2578,14 +2579,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.4.1":
+"tslib@npm:^2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 10c0/e03a8a4271152c8b26604ed45535954c0a45296e32445b4b87f8a5abdb2421f40b59b4ca437c4346af0f28179780d604094eb64546bee2019d903d01c6c19bdb
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.0.0, typescript@npm:^5.0.3":
+"typescript@npm:^5.0.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
   bin:
@@ -2595,13 +2596,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.0.0#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.0.3#optional!builtin<compat/typescript>":
+"typescript@npm:^5.4.2":
+  version: 5.4.2
+  resolution: "typescript@npm:5.4.2"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/583ff68cafb0c076695f72d61df6feee71689568179fb0d3a4834dac343df6b6ed7cf7b6f6c801fa52d43cd1d324e2f2d8ae4497b09f9e6cfe3d80a6d6c9ca52
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5.0.3#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/1d0a5f4ce496c42caa9a30e659c467c5686eae15d54b027ee7866744952547f1be1262f2d40de911618c242b510029d51d43ff605dba8fb740ec85ca2d3f9500
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5.4.2#optional!builtin<compat/typescript>":
+  version: 5.4.2
+  resolution: "typescript@patch:typescript@npm%3A5.4.2#optional!builtin<compat/typescript>::version=5.4.2&hash=5adc0c"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/fcf6658073d07283910d9a0e04b1d5d0ebc822c04dbb7abdd74c3151c7aa92fcddbac7d799404e358197222006ccdc4c0db219d223d2ee4ccd9e2b01333b49be
   languageName: node
   linkType: hard
 
@@ -2630,9 +2651,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.3":
-  version: 5.1.4
-  resolution: "vite@npm:5.1.4"
+"vite@npm:^5.1.5":
+  version: 5.1.5
+  resolution: "vite@npm:5.1.5"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
@@ -2666,7 +2687,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/8f04c8bed33f266bde27f432412456a3b893b51fe1857f0b8cd259100b376c1393a7927db1dd6344a4376baed72ed179ec5b0428aef2ae8508f1f28f95acb908
+  checksum: 10c0/29be99ba0bec5e3ad50290510ba764b6c1016979a1ba70cf2071be9f1338f27e582a120836222e1fad6efb01c886a8fb57cb33471fadd0fceaa922bfc92bbbf7
   languageName: node
   linkType: hard
 
@@ -2783,5 +2804,14 @@ __metadata:
     y18n: "npm:^5.0.5"
     yargs-parser: "npm:^20.2.2"
   checksum: 10c0/b1dbfefa679848442454b60053a6c95d62f2d2e21dd28def92b647587f415969173c6e99a0f3bab4f1b67ee8283bf735ebe3544013f09491186ba9e8a9a2b651
+  languageName: node
+  linkType: hard
+
+"yarn-upgrade-all@npm:^0.7.2":
+  version: 0.7.2
+  resolution: "yarn-upgrade-all@npm:0.7.2"
+  bin:
+    yarn-upgrade-all: build/index.js
+  checksum: 10c0/9c004879f6f82dc2fca6a5a62553b408d6e4c863d0a038c68cc95175f12cf30aeb09bae8a7948c96dda4cfd9403916f73ccbb664513e6c1007e012e60e8f85a9
   languageName: node
   linkType: hard

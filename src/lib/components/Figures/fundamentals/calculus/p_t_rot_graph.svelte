@@ -162,16 +162,13 @@
         let functionLineGeometry = new LineGeometry();
         let points = new Array<number>( numOfPoints * 3 );
         
-        function updatePoints() {
-            for (let i = 0; i < numOfPoints; i++) {
-                let x = lbound + (rbound - lbound) / (numOfPoints - 1) * i;
-                points[3 * i] = x;
-                points[3 * i + 1] = func(x);
-                points[3 * i + 2] = 0;
-            }
-            functionLineGeometry.setPositions( points );
+        for (let i = 0; i < numOfPoints; i++) {
+            let x = lbound + (rbound - lbound) / (numOfPoints - 1) * i;
+            points[3 * i] = x;
+            points[3 * i + 1] = func(x);
+            points[3 * i + 2] = 0;
         }
-        updatePoints();
+        functionLineGeometry.setPositions( points );
 
         let functionLineMaterial = new LineMaterial( {
             color: 0x26ad46,
